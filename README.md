@@ -109,14 +109,19 @@ two-magnet change.
 
 ## The die-cut outline
 
-`dieCut` draws a white sticker contour with a soft lift shadow around every magnet — raster or
-vector, default artwork or your own `renderMagnet`. Pass a number to set the outline radius in
-CSS pixels (default `2`):
+`dieCut` draws a sticker contour with a soft lift shadow around every magnet — raster or vector,
+default artwork or your own `renderMagnet`:
 
 ```tsx
-<MagnetBoard items={items} dieCut />       // 2px outline
-<MagnetBoard items={items} dieCut={4} />   // heavier outline
+<MagnetBoard items={items} dieCut />                            // 2px white
+<MagnetBoard items={items} dieCut={4} />                        // heavier, still white
+<MagnetBoard items={items} dieCut={{ color: '#22C55E' }} />     // any CSS colour
+<MagnetBoard items={items} dieCut={{ color: '#0B1120', radius: 3 }} />
 ```
+
+`color` takes any CSS colour (`#22C55E`, `tomato`, `rgb(0 0 0 / 60%)`). Each radius/colour pair
+gets its own filter id, so boards using different outlines on one page don't collide. A dark
+outline needs light artwork to read as an edge.
 
 The filter is applied to a wrapper element rather than your artwork, so the outline is the same
 weight whatever viewBox an inline `<svg>` icon happens to use — mixing 24-unit icon sets with
@@ -145,7 +150,7 @@ siblings. Pass a memoized `renderMagnet` to keep this guarantee when the parent 
 | `initialLayout` | `Record<id, {x,y,r?,z?,s?}>` | exported layout to start from |
 | `renderMagnet` | `(item, index) => ReactNode` | defaults to `<img>` |
 | `editable` | `boolean` | enable dragging and selection |
-| `dieCut` | `boolean \| number` | white sticker outline on every magnet; a number sets its px radius |
+| `dieCut` | `boolean \| number \| {radius?,color?}` | sticker outline on every magnet; number sets px radius, object sets colour too |
 | `menu` | `boolean` | show the layer/rotate/size menu beside the selection (default `true`) |
 | `onLayoutChange` | `(layout) => void` | called on every layout change |
 | `onSelectionChange` | `(id \| null) => void` | called when the selection changes |

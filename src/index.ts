@@ -1,4 +1,12 @@
-export { DIE_CUT_RADIUS, DieCutFilter, dieCutFilter, dieCutFilterId } from './dieCut';
+export type { DieCut, DieCutOptions } from './dieCut';
+export {
+  DIE_CUT_COLOR,
+  DIE_CUT_RADIUS,
+  DieCutFilter,
+  dieCutFilter,
+  dieCutFilterId,
+  resolveDieCut,
+} from './dieCut';
 export { magnetFx } from './fx';
 export { defaultGrid } from './grid';
 export {

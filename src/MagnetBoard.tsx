@@ -10,7 +10,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { DIE_CUT_RADIUS, DieCutFilter } from './dieCut';
+import { type DieCut, DieCutFilter, dieCutFilter, resolveDieCut } from './dieCut';
 import { magnetFx } from './fx';
 import { defaultGrid } from './grid';
 import { Magnet } from './Magnet';
@@ -55,10 +55,11 @@ export interface MagnetBoardProps {
   /** Enable dragging and selection. */
   editable?: boolean;
   /**
-   * White "die-cut" sticker outline around every magnet — raster or vector, default
-   * artwork or your own `renderMagnet`. Pass a number to set the outline radius in px.
+   * "Die-cut" sticker outline around every magnet — raster or vector, default artwork or your
+   * own `renderMagnet`. `true` gives a 2px white edge; pass a number for the radius in px, or
+   * `{ radius, color }` for any CSS colour.
    */
-  dieCut?: boolean | number;
+  dieCut?: DieCut;
   /** Show the layer/rotate/size menu beside the selected magnet. Defaults to true. */
   menu?: boolean;
   /** Fired after each drop, rotation, resize, or restack with the full layout. */
@@ -89,8 +90,7 @@ export const MagnetBoard = forwardRef<MagnetBoardHandle, MagnetBoardProps>(funct
   },
   ref,
 ) {
-  // One number to pass down: 0 means off.
-  const dieCutRadius = dieCut === true ? DIE_CUT_RADIUS : dieCut === false ? 0 : dieCut;
+  const dc = resolveDieCut(dieCut);
   const boardRef = useRef<HTMLDivElement>(null);
   // Selection carries the magnet's current Pos so the menu can re-anchor after every change.
   const [sel, setSel] = useState<{ id: string; pos: Pos } | null>(null);
@@ -238,7 +238,7 @@ export const MagnetBoard = forwardRef<MagnetBoardHandle, MagnetBoardProps>(funct
       style={{ position: 'relative', ...style }}
       onPointerDown={editable ? () => select(null) : undefined}
     >
-      {dieCutRadius > 0 && <DieCutFilter radius={dieCutRadius} />}
+      {dc && <DieCutFilter radius={dc.radius} color={dc.color} />}
       {children}
       {magnets.map((item, i) => (
         <Magnet
@@ -248,7 +248,7 @@ export const MagnetBoard = forwardRef<MagnetBoardHandle, MagnetBoardProps>(funct
           initialPos={posRef.current.get(item.id) as Pos}
           gridPos={grid[item.id]}
           editable={editable}
-          dieCut={dieCutRadius}
+          dieCut={dc ? dieCutFilter(dc.radius, dc.color) : undefined}
           selected={sel?.id === item.id}
           boardRef={boardRef}
           register={register}

@@ -1,6 +1,6 @@
 {
   "name": "react-magneto",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Draggable fridge-magnet board for React. Render-free dragging, layout export/import, per-magnet layer, rotation and size.",
   "type": "module",
   "sideEffects": false,

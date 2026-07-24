@@ -122,13 +122,34 @@ describe('rendering', () => {
     expect(wrapper.querySelector('svg[aria-label="art"]')).toBeTruthy();
   });
 
-  it('takes a custom outline radius, keyed so boards can differ', async () => {
+  it('takes a custom outline radius', async () => {
     const { magnet, container } = setup({ dieCut: 4 });
     await settled(magnet('react'));
     const wrapper = magnet('react').firstElementChild as HTMLElement;
     expect(wrapper.style.filter).toContain('magneto-diecut-4');
-    expect(container.querySelector('#magneto-diecut-4')).toBeTruthy();
     expect(container.querySelector('feMorphology')?.getAttribute('radius')).toBe('4');
+    // The magnet points at the filter the board actually rendered.
+    const id = container.querySelector('filter')?.id as string;
+    expect(wrapper.style.filter).toContain(id);
+  });
+
+  it('takes an outline colour', async () => {
+    const { magnet, container } = setup({ dieCut: { color: '#111', radius: 3 } });
+    await settled(magnet('react'));
+    expect(container.querySelector('feFlood')?.getAttribute('flood-color')).toBe('#111');
+    expect(container.querySelector('feMorphology')?.getAttribute('radius')).toBe('3');
+    const id = container.querySelector('filter')?.id as string;
+    expect((magnet('react').firstElementChild as HTMLElement).style.filter).toContain(id);
+  });
+
+  it('defaults the colour to white and the radius to 2', async () => {
+    const { magnet, container } = setup({ dieCut: { color: 'tomato' } });
+    await settled(magnet('react'));
+    expect(container.querySelector('feFlood')?.getAttribute('flood-color')).toBe('tomato');
+    expect(container.querySelector('feMorphology')?.getAttribute('radius')).toBe('2');
+    const plain = setup({ dieCut: true });
+    await settled(plain.magnet('react'));
+    expect(plain.container.querySelector('feFlood')?.getAttribute('flood-color')).toBe('#fff');
   });
 
   it('falls back to the deterministic tilt when a layout omits rotation', async () => {

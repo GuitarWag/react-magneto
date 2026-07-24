@@ -200,3 +200,54 @@ export function Link({ href, children }: { href: string; children: ReactNode }) 
     </a>
   );
 }
+
+/** A colour choice for the die-cut outline. */
+export function Swatch({
+  color,
+  label,
+  selected,
+  onClick,
+}: {
+  color: string;
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  const [focus, setFocus] = useState(false);
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      aria-pressed={selected}
+      onClick={onClick}
+      onFocus={() => setFocus(true)}
+      onBlur={() => setFocus(false)}
+      style={{
+        all: 'unset',
+        boxSizing: 'border-box',
+        width: 40,
+        height: 40,
+        borderRadius: t.radius,
+        cursor: 'pointer',
+        background: t.surface,
+        border: `1px solid ${selected ? t.accent : t.border}`,
+        display: 'grid',
+        placeItems: 'center',
+        transition: `border-color 180ms ${t.ease}`,
+        ...(focus ? focusRing : null),
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{
+          width: 16,
+          height: 16,
+          borderRadius: 5,
+          background: color,
+          boxShadow: `0 0 0 1px ${t.borderHi}`,
+        }}
+      />
+    </button>
+  );
+}

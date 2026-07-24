@@ -1,7 +1,6 @@
 'use client';
 
 import { memo, type ReactNode, useEffect, useRef, useState } from 'react';
-import { dieCutFilter } from './dieCut';
 import { magnetFx } from './fx';
 import type { MagnetItem, Pos } from './types';
 import { BASE_Z, DRAG_Z } from './zorder';
@@ -12,8 +11,8 @@ export interface MagnetProps {
   initialPos: Pos;
   gridPos: Pos;
   editable: boolean;
-  /** Outline radius in px, or 0 for no die-cut. */
-  dieCut: number;
+  /** Ready-made `url(#…)` for the die-cut filter, or undefined for no outline. */
+  dieCut?: string;
   selected: boolean;
   boardRef: React.RefObject<HTMLDivElement | null>;
   /**
@@ -150,7 +149,7 @@ function MagnetInner({
         the units are CSS pixels, so every magnet gets the same edge. It also means the outline
         works for custom renderMagnet content, not just the default <img>.
       */}
-      <div style={{ display: 'flex', filter: dieCut ? dieCutFilter(dieCut) : undefined }}>
+      <div style={{ display: 'flex', filter: dieCut }}>
         {renderMagnet ? (
           renderMagnet(item, index)
         ) : item.src ? (

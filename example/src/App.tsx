@@ -29,6 +29,7 @@ import {
   IconUnlock,
   InstallLine,
   Link,
+  Swatch,
 } from './ui';
 
 // Bundled icons rather than a CDN, so the deployed playground works offline and can't be
@@ -54,6 +55,13 @@ const LOGOS = [
 ] as const;
 
 const ITEMS: MagnetItem[] = LOGOS.map(({ id }) => ({ id }));
+
+/** Outline colours offered in the playground; `dieCut` accepts any CSS colour. */
+const OUTLINES = [
+  { label: 'White outline', color: '#fff' },
+  { label: 'Green outline', color: '#22C55E' },
+  { label: 'Ink outline', color: '#0B1120' },
+] as const;
 const BY_ID = new Map(LOGOS.map((l) => [l.id, l]));
 
 const card: CSSProperties = {
@@ -81,6 +89,7 @@ export function App() {
   const board = useRef<MagnetBoardHandle>(null);
   const [editable, setEditable] = useState(true);
   const [dieCut, setDieCut] = useState(true);
+  const [outline, setOutline] = useState<string>(OUTLINES[0].color);
   const [selected, setSelected] = useState<string | null>(null);
   const [layout, setLayout] = useState<Layout>({});
   const [seed, setSeed] = useState(0); // remount key: re-runs the intro animation
@@ -185,12 +194,27 @@ export function App() {
           </Button>
           <Button
             onClick={() => setDieCut((v) => !v)}
-            title="Toggle the white die-cut sticker outline"
+            title="Toggle the die-cut sticker outline"
             pressed={dieCut}
           >
             <IconSticker />
             Die-cut
           </Button>
+          {/* Each swatch names itself ("Green outline") and reports aria-pressed, so the row
+              needs no group semantics of its own. */}
+          {dieCut && (
+            <span style={{ display: 'inline-flex', gap: t.s1 }}>
+              {OUTLINES.map((o) => (
+                <Swatch
+                  key={o.color}
+                  color={o.color}
+                  label={o.label}
+                  selected={outline === o.color}
+                  onClick={() => setOutline(o.color)}
+                />
+              ))}
+            </span>
+          )}
           <Button
             onClick={() => {
               setLayout({});
@@ -218,7 +242,7 @@ export function App() {
           ref={board}
           items={ITEMS}
           editable={editable}
-          dieCut={dieCut}
+          dieCut={dieCut ? { color: outline } : false}
           renderMagnet={renderMagnet}
           onSelectionChange={setSelected}
           onLayoutChange={setLayout}
