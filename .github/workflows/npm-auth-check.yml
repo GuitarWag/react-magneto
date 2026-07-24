@@ -1,0 +1,30 @@
+name: npm auth check
+
+# Temporary: verifies NPM_TOKEN can perform a publish-class write without an OTP prompt,
+# without burning a version number. A dist-tag write is governed by the same 2FA policy as
+# publish, and is undone immediately afterwards.
+on: workflow_dispatch
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - name: Who does the token authenticate as
+        run: npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Write test — add a throwaway dist-tag
+        run: npm dist-tag add react-magneto@0.1.0 authcheck
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Undo — remove the throwaway dist-tag
+        if: always()
+        continue-on-error: true
+        run: npm dist-tag rm react-magneto authcheck
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
