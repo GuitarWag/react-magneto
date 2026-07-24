@@ -6,3 +6,8 @@ example/dist
 .DS_Store
 *.tgz
 coverage
+
+# never commit secrets
+.env
+.env.*
+!.env.example
