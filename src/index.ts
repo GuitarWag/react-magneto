@@ -4,3 +4,4 @@ export { defaultGrid } from './grid';
 export type { MagnetBoardHandle, MagnetBoardProps } from './MagnetBoard';
 export { MagnetBoard } from './MagnetBoard';
 export type { Layout, MagnetItem, Pos } from './types';
+export { BASE_Z, stepZ, zRange } from './zorder';

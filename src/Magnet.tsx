@@ -4,6 +4,7 @@ import { memo, type ReactNode, useEffect, useRef, useState } from 'react';
 import { dieCutFilter } from './dieCut';
 import { magnetFx } from './fx';
 import type { MagnetItem, Pos } from './types';
+import { BASE_Z, DRAG_Z } from './zorder';
 
 export interface MagnetProps {
   item: MagnetItem;
@@ -12,8 +13,15 @@ export interface MagnetProps {
   gridPos: Pos;
   editable: boolean;
   dieCut: boolean;
+  selected: boolean;
   boardRef: React.RefObject<HTMLDivElement | null>;
-  onCommit: (id: string, pos: Pos) => void;
+  /**
+   * Subscribe this magnet to board-driven updates (drag commits, rotate, resize, z-order)
+   * and hand over its element so the board can position the menu against it.
+   */
+  register: (id: string, set: (p: Pos) => void, el: HTMLDivElement) => () => void;
+  onGrab: (id: string) => void;
+  onCommit: (id: string, pos: { x: number; y: number }) => void;
   renderMagnet?: (item: MagnetItem, index: number) => ReactNode;
 }
 
@@ -26,7 +34,10 @@ function MagnetInner({
   gridPos,
   editable,
   dieCut,
+  selected,
   boardRef,
+  register,
+  onGrab,
   onCommit,
   renderMagnet,
 }: MagnetProps) {
@@ -44,6 +55,12 @@ function MagnetInner({
   const [pos, setPos] = useState(initialPos);
   const [mounted, setMounted] = useState(false);
 
+  // The board owns the layout; it pushes changes here so a command touches one magnet only.
+  useEffect(() => {
+    const el = elRef.current;
+    return el ? register(item.id, setPos, el) : undefined;
+  }, [register, item.id]);
+
   // One-time intro: spring from the aligned grid to the resting layout, staggered.
   useEffect(() => {
     const id = requestAnimationFrame(() => setMounted(true));
@@ -52,17 +69,21 @@ function MagnetInner({
 
   // left/top stay fixed while dragging; movement rides on transform, so the (filtered)
   // element rasterizes once and the compositor just repositions the cached layer.
-  const base = `translate(-50%, -50%) rotate(${mounted ? fx.angle : 0}deg) scale(${mounted ? 1 : 0.4})`;
+  const angle = pos.r ?? fx.angle;
+  const scale = pos.s ?? 1;
+  const base = `translate(-50%, -50%) rotate(${mounted ? angle : 0}deg) scale(${mounted ? scale : 0.4})`;
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!editable || !elRef.current || !boardRef.current) return;
     e.preventDefault();
+    e.stopPropagation(); // the board deselects on background presses
+    onGrab(item.id); // select + raise above siblings
     const r = boardRef.current.getBoundingClientRect();
     drag.current = { cx: e.clientX, cy: e.clientY, bw: r.width, bh: r.height, x: pos.x, y: pos.y };
     elRef.current.setPointerCapture(e.pointerId);
     elRef.current.style.transition = 'none';
     elRef.current.style.willChange = 'transform'; // promote to its own compositor layer
-    elRef.current.style.zIndex = '50';
+    elRef.current.style.zIndex = String(DRAG_Z); // lift for the gesture only
     elRef.current.style.cursor = 'grabbing';
   };
 
@@ -88,13 +109,14 @@ function MagnetInner({
     if (!drag.current || !elRef.current) return;
     const t = target(e);
     drag.current = null;
-    // Commit to left/top and drop the drag transform in one paint — no flash.
+    // Drop the drag transform and let the committed left/top take over in the same paint.
     elRef.current.style.transform = base;
     elRef.current.style.transition = '';
     elRef.current.style.willChange = '';
+    // Back to the magnet's own layer — set explicitly, so React's next write agrees.
+    elRef.current.style.zIndex = String(pos.z ?? BASE_Z);
     elRef.current.style.cursor = 'grab';
-    setPos(t); // one render — this magnet only
-    onCommit(item.id, t);
+    onCommit(item.id, t); // board writes it back through `register` — one render, this magnet
   };
 
   const p = mounted ? pos : gridPos;
@@ -116,7 +138,9 @@ function MagnetInner({
         cursor: editable ? 'grab' : 'default',
         touchAction: 'none',
         userSelect: 'none',
-        zIndex: 1,
+        zIndex: pos.z ?? BASE_Z,
+        outline: selected ? '2px dashed rgba(255,255,255,0.9)' : undefined,
+        outlineOffset: selected ? 4 : undefined,
       }}
     >
       {renderMagnet ? (

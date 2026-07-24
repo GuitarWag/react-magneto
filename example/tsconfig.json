@@ -9,7 +9,7 @@
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "paths": { "magneto": ["../src/index.ts"] }
+    "paths": { "react-magneto": ["../src/index.ts"] }
   },
   "include": ["src", "vite.config.ts"]
 }

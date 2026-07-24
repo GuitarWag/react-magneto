@@ -1,5 +1,5 @@
-import { type Layout, MagnetBoard, type MagnetBoardHandle, type MagnetItem } from 'magneto';
 import { useRef, useState } from 'react';
+import { type Layout, MagnetBoard, type MagnetBoardHandle, type MagnetItem } from 'react-magneto';
 
 const CDN = 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons';
 
@@ -24,6 +24,7 @@ export function App() {
   const [editable, setEditable] = useState(true);
   const [initial, setInitial] = useState<Layout | undefined>(undefined);
   const [json, setJson] = useState('');
+  const [selected, setSelected] = useState<string | null>(null);
 
   const exportLayout = () => {
     const layout = board.current?.getLayout() ?? {};
@@ -36,7 +37,8 @@ export function App() {
     <div style={{ maxWidth: 960, margin: '40px auto', padding: 16 }}>
       <h1 style={{ marginBottom: 4 }}>magneto</h1>
       <p style={{ color: '#666', marginTop: 0 }}>
-        Drag the magnets. Export the layout, then reload it as the starting state.
+        Drag the magnets. Select one to restack, rotate, or resize it from the menu that appears
+        beside it. Export the layout, then reload it as the starting state.
       </p>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
@@ -51,13 +53,20 @@ export function App() {
         </button>
       </div>
 
+      <p style={{ color: '#666', fontSize: 13, margin: '0 0 16px' }}>
+        {selected
+          ? `selected: ${selected} — use the menu above it to restack, rotate, or resize`
+          : 'click a magnet to select it'}
+      </p>
+
       <MagnetBoard
         ref={board}
         items={ITEMS}
         editable={editable}
         dieCut
         initialLayout={initial}
-        onLayoutChange={(l) => console.log('drop', l)}
+        onLayoutChange={(l) => console.log('layout', l)}
+        onSelectionChange={setSelected}
         style={{ aspectRatio: '16 / 8', borderRadius: 28, overflow: 'hidden' }}
       >
         {/* dynamic background layer */}
