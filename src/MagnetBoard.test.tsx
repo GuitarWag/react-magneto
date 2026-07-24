@@ -220,10 +220,10 @@ describe('the menu', () => {
   it('appears beside the selection with layer, rotate and size controls', async () => {
     await open();
     for (const label of [
-      'Bring forward one layer',
-      'Send backward one layer',
-      'Rotate left',
-      'Rotate right',
+      'Forward one layer',
+      'Backward one layer',
+      'Rotate left 15°',
+      'Rotate right 15°',
       'Smaller',
       'Bigger',
     ]) {
@@ -233,17 +233,17 @@ describe('the menu', () => {
 
   it('stays hidden when menu is false, when locked, and with nothing selected', async () => {
     const noMenu = await open({ menu: false });
-    expect(noMenu.container.querySelector('[aria-label="Rotate left"]')).toBeNull();
+    expect(noMenu.container.querySelector('[aria-label="Rotate left 15°"]')).toBeNull();
     noMenu.unmount();
 
     const locked = setup({ editable: false });
     await settled(locked.magnet('react'));
-    expect(locked.container.querySelector('[aria-label="Rotate left"]')).toBeNull();
+    expect(locked.container.querySelector('[aria-label="Rotate left 15°"]')).toBeNull();
     locked.unmount();
 
     const idle = setup();
     await settled(idle.magnet('react'));
-    expect(idle.container.querySelector('[aria-label="Rotate left"]')).toBeNull();
+    expect(idle.container.querySelector('[aria-label="Rotate left 15°"]')).toBeNull();
   });
 
   it('hides while a magnet is being dragged and returns on drop', async () => {
@@ -251,19 +251,23 @@ describe('the menu', () => {
     const el = magnet('react');
     pt(el, 'pointerDown', 500, 250);
     pt(el, 'pointerMove', 600, 250);
-    await waitFor(() => expect(container.querySelector('[aria-label="Rotate left"]')).toBeNull());
+    await waitFor(() =>
+      expect(container.querySelector('[aria-label="Rotate left 15°"]')).toBeNull(),
+    );
     pt(el, 'pointerUp', 600, 250);
-    await waitFor(() => expect(container.querySelector('[aria-label="Rotate left"]')).toBeTruthy());
+    await waitFor(() =>
+      expect(container.querySelector('[aria-label="Rotate left 15°"]')).toBeTruthy(),
+    );
   });
 
   it("rotates in 15° steps from the magnet's own tilt", async () => {
     const { magnet } = await open();
     const el = magnet('react');
     const base = magnetFx('react').angle;
-    fireEvent.click(await screen.findByLabelText('Rotate right'));
+    fireEvent.click(await screen.findByLabelText('Rotate right 15°'));
     await waitFor(() => expect(el.style.transform).toContain(`rotate(${base + 15}deg)`));
-    fireEvent.click(screen.getByLabelText('Rotate left'));
-    fireEvent.click(screen.getByLabelText('Rotate left'));
+    fireEvent.click(screen.getByLabelText('Rotate left 15°'));
+    fireEvent.click(screen.getByLabelText('Rotate left 15°'));
     await waitFor(() => expect(el.style.transform).toContain(`rotate(${base - 15}deg)`));
   });
 
@@ -289,25 +293,51 @@ describe('the menu', () => {
     expect(json).not.toMatch(/\d\.\d{5,}/);
   });
 
+  it('jumps straight to the front or back in a single press', async () => {
+    const { ref, magnet } = await open();
+    const layerOf = (id: string) => ref.current?.getLayout()[id].z ?? 1;
+    // Item order is the starting stack: react, go, docker — react is at the bottom.
+    fireEvent.click(await screen.findByLabelText('Bring to front'));
+    await waitFor(() => expect(layerOf('react')).toBe(3));
+    expect(layerOf('go')).toBe(1);
+    expect(layerOf('docker')).toBe(2); // relative order of the others is kept
+    expect(magnet('react').style.zIndex).toBe('3');
+
+    fireEvent.click(screen.getByLabelText('Send to back'));
+    await waitFor(() => expect(layerOf('react')).toBe(1));
+    expect(layerOf('go')).toBe(2);
+    expect(layerOf('docker')).toBe(3);
+  });
+
+  it('leaves the stack alone when already at the requested edge', async () => {
+    const onLayoutChange = vi.fn();
+    const { ref } = await open({ onLayoutChange });
+    fireEvent.click(await screen.findByLabelText('Bring to front'));
+    await waitFor(() => expect(ref.current?.getLayout().react.z).toBe(3));
+    onLayoutChange.mockClear();
+    fireEvent.click(screen.getByLabelText('Bring to front')); // already on top
+    expect(onLayoutChange).not.toHaveBeenCalled();
+  });
+
   it('steps one layer per press instead of jumping to the front', async () => {
     const { ref, magnet } = await open();
     const layerOf = (id: string) => ref.current?.getLayout()[id].z ?? 1;
     // Item order is the starting stack: react, go, docker.
-    fireEvent.click(await screen.findByLabelText('Bring forward one layer'));
+    fireEvent.click(await screen.findByLabelText('Forward one layer'));
     await waitFor(() => expect(layerOf('react')).toBe(2));
     expect(layerOf('go')).toBe(1);
     expect(layerOf('docker')).toBe(3); // still above react — no jump to the top
 
-    fireEvent.click(screen.getByLabelText('Bring forward one layer'));
+    fireEvent.click(screen.getByLabelText('Forward one layer'));
     await waitFor(() => expect(layerOf('react')).toBe(3));
     expect(layerOf('docker')).toBe(2);
 
     // Pinned at the top now: further presses change nothing.
-    fireEvent.click(screen.getByLabelText('Bring forward one layer'));
+    fireEvent.click(screen.getByLabelText('Forward one layer'));
     await waitFor(() => expect(layerOf('react')).toBe(3));
     expect(magnet('react').style.zIndex).toBe('3');
 
-    fireEvent.click(screen.getByLabelText('Send backward one layer'));
+    fireEvent.click(screen.getByLabelText('Backward one layer'));
     await waitFor(() => expect(layerOf('react')).toBe(2));
   });
 });
@@ -337,7 +367,27 @@ describe('the ref handle', () => {
     ref.current?.resizeBy(1);
     ref.current?.bringForward();
     ref.current?.sendBackward();
+    ref.current?.bringToFront();
+    ref.current?.sendToBack();
     expect(onLayoutChange).not.toHaveBeenCalled();
+  });
+
+  it('exposes full-jump and single-step layering side by side', async () => {
+    const { ref, magnet } = setup();
+    await settled(magnet('react'));
+    const order = () =>
+      Object.entries(ref.current?.getLayout() ?? {})
+        .sort((a, b) => (a[1].z ?? 1) - (b[1].z ?? 1))
+        .map(([k]) => k);
+
+    ref.current?.bringToFront('react');
+    await waitFor(() => expect(order()).toEqual(['go', 'docker', 'react']));
+    ref.current?.sendBackward('react'); // one step back down
+    await waitFor(() => expect(order()).toEqual(['go', 'react', 'docker']));
+    ref.current?.sendToBack('react');
+    await waitFor(() => expect(order()).toEqual(['react', 'go', 'docker']));
+    ref.current?.bringForward('react');
+    await waitFor(() => expect(order()).toEqual(['go', 'react', 'docker']));
   });
 
   it('exposes relative and absolute rotation and scale', async () => {

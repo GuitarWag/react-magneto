@@ -68,14 +68,23 @@ the base layer, and its natural size.
 
 ## Selecting, layering, rotating, resizing
 
-Pressing a magnet selects it; pressing the background deselects. A small menu appears beside
-the selected magnet with layer (▲▼), rotate (⟲⟳) and size (−＋) controls, and follows the
-magnet as it moves, rotates and scales. Pass `menu={false}` to hide it and drive everything
-from the ref instead:
+Pressing a magnet selects it; pressing the background deselects. A menu appears beside the
+selected magnet and follows it as it moves, rotates and scales, with three groups of controls:
+
+| group | controls |
+| --- | --- |
+| layer | to front, forward one, backward one, to back |
+| rotate | left 15°, right 15° |
+| size | smaller, bigger |
+
+Each button is an icon with a hover (and keyboard-focus) tip naming what it does. Pass
+`menu={false}` to hide the whole thing and drive everything from the ref instead:
 
 ```tsx
-board.current?.bringForward();   // up one layer — or bringForward('react')
-board.current?.sendBackward();   // down one layer
+board.current?.bringToFront();   // straight to the top — or bringToFront('react')
+board.current?.sendToBack();     // straight to the bottom
+board.current?.bringForward();   // up exactly one layer
+board.current?.sendBackward();   // down exactly one layer
 board.current?.rotateBy(15);     // relative — good for buttons
 board.current?.rotate(0);        // absolute — good for a slider or "straighten"
 board.current?.resizeBy(0.15);   // relative scale
@@ -85,10 +94,17 @@ board.current?.resize(1.5);      // absolute scale (clamped to 0.4–3)
 Every command targets the selection unless you pass an id, and each one changes only the
 magnets it has to, so it survives export → import.
 
-**Layering moves one step at a time.** `bringForward` swaps a magnet with the one directly
-above it rather than jumping to the very front, so a magnet four layers down needs four
-presses to clear the magnet above it. The stack is renumbered densely (1..n) as you go, which
-keeps every step a two-magnet change.
+**Stepping and jumping are separate on purpose.** `bringForward` swaps a magnet with the one
+directly above it, so a magnet four layers down needs four presses to clear the one above it;
+`bringToFront` goes to the top in a single call while keeping the relative order of everything
+it passes. The stack is renumbered densely (1..n) either way, which keeps a step to a
+two-magnet change.
+
+The menu's icons are exported too, if you are building your own controls:
+
+```tsx
+import { IconToFront, IconForward, IconRotateLeft, IconBigger } from 'react-magneto';
+```
 
 ## Performance
 
@@ -108,13 +124,14 @@ siblings. Pass a memoized `renderMagnet` to keep this guarantee when the parent 
 | `renderMagnet` | `(item, index) => ReactNode` | defaults to `<img>` |
 | `editable` | `boolean` | enable dragging and selection |
 | `dieCut` | `boolean` | white sticker outline on default `<img>` magnets |
-| `menu` | `boolean` | show the menu beside the selection (default `true`) |
+| `menu` | `boolean` | show the layer/rotate/size menu beside the selection (default `true`) |
 | `onLayoutChange` | `(layout) => void` | called on every layout change |
 | `onSelectionChange` | `(id \| null) => void` | called when the selection changes |
 | `className` / `style` / `children` | — | you own the board look; `children` is the background |
 
-Ref handle: `getLayout()`, `bringForward(id?)`, `sendBackward(id?)`, `rotate(deg, id?)`,
-`rotateBy(delta, id?)`, `resize(scale, id?)`, `resizeBy(delta, id?)`.
+Ref handle: `getLayout()`, `bringToFront(id?)`, `sendToBack(id?)`, `bringForward(id?)`,
+`sendBackward(id?)`, `rotate(deg, id?)`, `rotateBy(delta, id?)`, `resize(scale, id?)`,
+`resizeBy(delta, id?)`.
 
 ## Develop
 

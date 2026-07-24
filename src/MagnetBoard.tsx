@@ -17,7 +17,7 @@ import { Magnet } from './Magnet';
 import { Menu } from './Menu';
 import { round } from './round';
 import type { Layout, MagnetItem, Pos } from './types';
-import { stepZ } from './zorder';
+import { jumpZ, stepZ } from './zorder';
 
 /** How much one menu press changes scale, and the range it stays inside. */
 const SIZE_STEP = 0.15;
@@ -27,6 +27,10 @@ const MAX_SCALE = 3;
 export interface MagnetBoardHandle {
   /** Read the current layout on demand — e.g. from an "export" button. */
   getLayout: () => Layout;
+  /** Move above every other magnet. Defaults to the selected magnet. */
+  bringToFront: (id?: string) => void;
+  /** Move below every other magnet. Defaults to the selected magnet. */
+  sendToBack: (id?: string) => void;
   /** Move up exactly one layer. Defaults to the selected magnet. */
   bringForward: (id?: string) => void;
   /** Move down exactly one layer. Defaults to the selected magnet. */
@@ -177,6 +181,14 @@ export const MagnetBoard = forwardRef<MagnetBoardHandle, MagnetBoardProps>(funct
     [applyMany],
   );
 
+  const jump = useCallback(
+    (id: string, edge: 'front' | 'back') => {
+      const changed = jumpZ([...posRef.current.entries()], id, edge);
+      if (changed.length) applyMany(changed.map(([k, z]) => [k, { z }]));
+    },
+    [applyMany],
+  );
+
   const rotateBy = useCallback(
     (id: string, delta: number) =>
       // No explicit rotation yet means the magnet is sitting at its deterministic tilt.
@@ -200,6 +212,8 @@ export const MagnetBoard = forwardRef<MagnetBoardHandle, MagnetBoardProps>(funct
     };
     return {
       getLayout: () => Object.fromEntries(posRef.current),
+      bringToFront: (id) => on(pick(id), (t) => jump(t, 'front')),
+      sendToBack: (id) => on(pick(id), (t) => jump(t, 'back')),
       bringForward: (id) => on(pick(id), (t) => layer(t, 1)),
       sendBackward: (id) => on(pick(id), (t) => layer(t, -1)),
       rotate: (deg, id) => on(pick(id), (t) => apply(t, { r: round(deg) })),
@@ -208,7 +222,7 @@ export const MagnetBoard = forwardRef<MagnetBoardHandle, MagnetBoardProps>(funct
         on(pick(id), (t) => apply(t, { s: round(clamp(scale, MIN_SCALE, MAX_SCALE), 3) })),
       resizeBy: (delta, id) => on(pick(id), (t) => resizeBy(t, delta)),
     };
-  }, [apply, layer, rotateBy, resizeBy]);
+  }, [apply, layer, jump, rotateBy, resizeBy]);
 
   const selEl = sel ? reg.current.get(sel.id)?.el : undefined;
 
@@ -244,6 +258,7 @@ export const MagnetBoard = forwardRef<MagnetBoardHandle, MagnetBoardProps>(funct
           el={selEl}
           boardEl={boardRef.current}
           pos={sel.pos}
+          onJump={(edge) => jump(sel.id, edge)}
           onLayer={(dir) => layer(sel.id, dir)}
           onRotate={(delta) => rotateBy(sel.id, delta)}
           onResize={(dir) => resizeBy(sel.id, dir * SIZE_STEP)}
