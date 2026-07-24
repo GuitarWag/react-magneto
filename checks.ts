@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { magnetFx } from './src/fx.ts';
 import { defaultGrid } from './src/grid.ts';
 import type { Pos } from './src/types.ts';
-import { BASE_Z, stepZ, zRange } from './src/zorder.ts';
+import { BASE_Z, stepZ } from './src/zorder.ts';
 
 // magnetFx is deterministic and stays in range.
 assert.deepEqual(magnetFx('React'), magnetFx('React'), 'fx must be deterministic');
@@ -18,25 +18,6 @@ for (const [id, { x, y }] of Object.entries(g)) {
   assert.ok(x >= 0 && x <= 100, `${id} x in range: ${x}`);
   assert.ok(y >= 0 && y <= 100, `${id} y in range: ${y}`);
 }
-
-// z-order: magnets with no explicit z sit on the base layer.
-assert.deepEqual(
-  zRange([
-    { x: 0, y: 0 },
-    { x: 0, y: 0 },
-  ]),
-  { min: BASE_Z, max: BASE_Z },
-);
-assert.deepEqual(zRange([]), { min: BASE_Z, max: BASE_Z }, 'empty board is well-defined');
-assert.deepEqual(
-  zRange([
-    { x: 0, y: 0, z: 4 },
-    { x: 0, y: 0 },
-    { x: 0, y: 0, z: -2 },
-  ]),
-  { min: -2, max: 4 },
-  'implicit z still counts as the base layer',
-);
 
 // --- stepZ: one layer at a time, never a jump to the very front/back ---
 const stack = (zs: Array<number | undefined>): Array<[string, Pos]> =>

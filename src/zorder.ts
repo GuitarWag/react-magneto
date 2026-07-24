@@ -6,19 +6,6 @@ export const BASE_Z = 1;
 /** Temporary lift while dragging, so a back-layer magnet stays visible under the pointer. */
 export const DRAG_Z = 999_999;
 
-// Lowest/highest z in use.
-// ponytail: O(n) scan per call; fine at board scale (tens of magnets, one call per click).
-export function zRange(positions: Iterable<Pos>): { min: number; max: number } {
-  let min = BASE_Z;
-  let max = BASE_Z;
-  for (const p of positions) {
-    const z = p.z ?? BASE_Z;
-    if (z < min) min = z;
-    if (z > max) max = z;
-  }
-  return { min, max };
-}
-
 /**
  * Move one magnet a single layer up (`dir: 1`) or down (`dir: -1`).
  *
