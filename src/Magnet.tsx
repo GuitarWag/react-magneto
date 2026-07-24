@@ -12,7 +12,8 @@ export interface MagnetProps {
   initialPos: Pos;
   gridPos: Pos;
   editable: boolean;
-  dieCut: boolean;
+  /** Outline radius in px, or 0 for no die-cut. */
+  dieCut: number;
   selected: boolean;
   boardRef: React.RefObject<HTMLDivElement | null>;
   /**
@@ -143,19 +144,27 @@ function MagnetInner({
         outlineOffset: selected ? 4 : undefined,
       }}
     >
-      {renderMagnet ? (
-        renderMagnet(item, index)
-      ) : item.src ? (
-        <img
-          src={item.src}
-          alt={item.id}
-          width={fx.size}
-          draggable={false}
-          style={{ display: 'block', filter: dieCut ? dieCutFilter : undefined }}
-        />
-      ) : (
-        <span>{item.id}</span>
-      )}
+      {/*
+        The die-cut filter lives on this plain HTML wrapper, not on the artwork. Applied to an
+        inline <svg> the outline weight would vary with that icon's viewBox; on an HTML element
+        the units are CSS pixels, so every magnet gets the same edge. It also means the outline
+        works for custom renderMagnet content, not just the default <img>.
+      */}
+      <div style={{ display: 'flex', filter: dieCut ? dieCutFilter(dieCut) : undefined }}>
+        {renderMagnet ? (
+          renderMagnet(item, index)
+        ) : item.src ? (
+          <img
+            src={item.src}
+            alt={item.id}
+            width={fx.size}
+            draggable={false}
+            style={{ display: 'block' }}
+          />
+        ) : (
+          <span>{item.id}</span>
+        )}
+      </div>
     </div>
   );
 }

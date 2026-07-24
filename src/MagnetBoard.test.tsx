@@ -96,14 +96,39 @@ describe('rendering', () => {
   it('wires up the die-cut outline only when asked', async () => {
     const off = setup();
     await settled(off.magnet('react'));
-    expect((off.magnet('react').querySelector('img') as HTMLElement).style.filter).toBe('');
+    expect(off.magnet('react').innerHTML).not.toContain('url(#');
+    expect(off.container.querySelector('filter')).toBeNull();
     off.unmount();
 
     const on = setup({ dieCut: true });
     await settled(on.magnet('react'));
-    const img = on.magnet('react').querySelector('img') as HTMLElement;
-    expect(img.style.filter).toContain('url(#');
+    // The filter sits on the wrapper, not the artwork: on an inline <svg> the outline weight
+    // would depend on that icon's viewBox instead of being a fixed number of pixels.
+    const wrapper = on.magnet('react').firstElementChild as HTMLElement;
+    expect(wrapper.tagName).toBe('DIV');
+    expect(wrapper.style.filter).toContain('url(#magneto-diecut');
+    expect((on.magnet('react').querySelector('img') as HTMLElement).style.filter).toBe('');
     expect(on.container.querySelector('filter')).toBeTruthy();
+  });
+
+  it('outlines custom renderMagnet artwork too, not just the default <img>', async () => {
+    const { magnet } = setup({
+      dieCut: true,
+      renderMagnet: () => <svg viewBox="0 0 512 512" aria-label="art" />,
+    });
+    await settled(magnet('react'));
+    const wrapper = magnet('react').firstElementChild as HTMLElement;
+    expect(wrapper.style.filter).toContain('url(#magneto-diecut');
+    expect(wrapper.querySelector('svg[aria-label="art"]')).toBeTruthy();
+  });
+
+  it('takes a custom outline radius, keyed so boards can differ', async () => {
+    const { magnet, container } = setup({ dieCut: 4 });
+    await settled(magnet('react'));
+    const wrapper = magnet('react').firstElementChild as HTMLElement;
+    expect(wrapper.style.filter).toContain('magneto-diecut-4');
+    expect(container.querySelector('#magneto-diecut-4')).toBeTruthy();
+    expect(container.querySelector('feMorphology')?.getAttribute('radius')).toBe('4');
   });
 
   it('falls back to the deterministic tilt when a layout omits rotation', async () => {

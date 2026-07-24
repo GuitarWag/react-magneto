@@ -10,7 +10,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { DieCutFilter } from './dieCut';
+import { DIE_CUT_RADIUS, DieCutFilter } from './dieCut';
 import { magnetFx } from './fx';
 import { defaultGrid } from './grid';
 import { Magnet } from './Magnet';
@@ -54,8 +54,11 @@ export interface MagnetBoardProps {
   renderMagnet?: (item: MagnetItem, index: number) => ReactNode;
   /** Enable dragging and selection. */
   editable?: boolean;
-  /** Apply the white "die-cut" sticker outline to default `<img>` magnets. */
-  dieCut?: boolean;
+  /**
+   * White "die-cut" sticker outline around every magnet — raster or vector, default
+   * artwork or your own `renderMagnet`. Pass a number to set the outline radius in px.
+   */
+  dieCut?: boolean | number;
   /** Show the layer/rotate/size menu beside the selected magnet. Defaults to true. */
   menu?: boolean;
   /** Fired after each drop, rotation, resize, or restack with the full layout. */
@@ -86,6 +89,8 @@ export const MagnetBoard = forwardRef<MagnetBoardHandle, MagnetBoardProps>(funct
   },
   ref,
 ) {
+  // One number to pass down: 0 means off.
+  const dieCutRadius = dieCut === true ? DIE_CUT_RADIUS : dieCut === false ? 0 : dieCut;
   const boardRef = useRef<HTMLDivElement>(null);
   // Selection carries the magnet's current Pos so the menu can re-anchor after every change.
   const [sel, setSel] = useState<{ id: string; pos: Pos } | null>(null);
@@ -233,7 +238,7 @@ export const MagnetBoard = forwardRef<MagnetBoardHandle, MagnetBoardProps>(funct
       style={{ position: 'relative', ...style }}
       onPointerDown={editable ? () => select(null) : undefined}
     >
-      {dieCut && <DieCutFilter />}
+      {dieCutRadius > 0 && <DieCutFilter radius={dieCutRadius} />}
       {children}
       {magnets.map((item, i) => (
         <Magnet
@@ -243,7 +248,7 @@ export const MagnetBoard = forwardRef<MagnetBoardHandle, MagnetBoardProps>(funct
           initialPos={posRef.current.get(item.id) as Pos}
           gridPos={grid[item.id]}
           editable={editable}
-          dieCut={dieCut}
+          dieCut={dieCutRadius}
           selected={sel?.id === item.id}
           boardRef={boardRef}
           register={register}
