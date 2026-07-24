@@ -1,7 +1,14 @@
 # react-magneto
 
+[![npm](https://img.shields.io/npm/v/react-magneto?color=22c55e)](https://www.npmjs.com/package/react-magneto)
+[![CI](https://github.com/GuitarWag/react-magneto/actions/workflows/ci.yml/badge.svg)](https://github.com/GuitarWag/react-magneto/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/react-magneto?color=22c55e)](./LICENSE)
+
 Draggable fridge-magnet board for React. Headless, no runtime dependencies, and built so
 **dragging one magnet never re-renders the others or the board**.
+
+**[▸ Try the playground](https://guitarwag.github.io/react-magneto/)** — drag the stickers,
+restack and rotate them, and watch the exported layout update live.
 
 - Drop in an array of image urls and you have a board.
 - Drag, restack, rotate and resize magnets, then export the arrangement as JSON and feed it
@@ -100,6 +107,21 @@ directly above it, so a magnet four layers down needs four presses to clear the 
 it passes. The stack is renumbered densely (1..n) either way, which keeps a step to a
 two-magnet change.
 
+## The die-cut outline
+
+`dieCut` draws a white sticker contour with a soft lift shadow around every magnet — raster or
+vector, default artwork or your own `renderMagnet`. Pass a number to set the outline radius in
+CSS pixels (default `2`):
+
+```tsx
+<MagnetBoard items={items} dieCut />       // 2px outline
+<MagnetBoard items={items} dieCut={4} />   // heavier outline
+```
+
+The filter is applied to a wrapper element rather than your artwork, so the outline is the same
+weight whatever viewBox an inline `<svg>` icon happens to use — mixing 24-unit icon sets with
+512-unit ones gives a consistent edge.
+
 The menu's icons are exported too, if you are building your own controls:
 
 ```tsx
@@ -123,7 +145,7 @@ siblings. Pass a memoized `renderMagnet` to keep this guarantee when the parent 
 | `initialLayout` | `Record<id, {x,y,r?,z?,s?}>` | exported layout to start from |
 | `renderMagnet` | `(item, index) => ReactNode` | defaults to `<img>` |
 | `editable` | `boolean` | enable dragging and selection |
-| `dieCut` | `boolean` | white sticker outline on default `<img>` magnets |
+| `dieCut` | `boolean \| number` | white sticker outline on every magnet; a number sets its px radius |
 | `menu` | `boolean` | show the layer/rotate/size menu beside the selection (default `true`) |
 | `onLayoutChange` | `(layout) => void` | called on every layout change |
 | `onSelectionChange` | `(id \| null) => void` | called when the selection changes |
@@ -143,8 +165,13 @@ npm run test:cov   # vitest with coverage thresholds
 npm run lint       # biome
 npm run typecheck  # tsc --noEmit
 npm run build      # tsup -> dist
-cd example && npm install && npm run dev   # live demo
+cd example && npm install && npm run dev   # the playground
 ```
+
+The playground lives in `example/` and consumes the library source directly, so a change shows
+up without a build step. Every push to `main` deploys it to GitHub Pages via
+`.github/workflows/pages.yml`; the build sets `PAGES_BASE` because a project site is served
+from `/<repo>/`.
 
 The suite covers the pure layout helpers plus the board itself driven through real pointer
 events: drag maths and clamping, selection, the menu's placement and controls, layer stepping,
@@ -155,7 +182,7 @@ guarantee to account.
 
 CI runs lint, typecheck, checks and both builds on every push and PR. Publishing is driven by
 GitHub Releases: bump `version` in `package.json`, then publish a release tagged `v<version>`
-(e.g. `v0.1.0`). The release workflow verifies the tag matches `package.json` and runs
+(e.g. `v0.2.0`). The release workflow verifies the tag matches `package.json` and runs
 `npm publish` with provenance, using an `NPM_TOKEN` repository secret.
 
 ## License
