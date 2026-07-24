@@ -274,22 +274,28 @@ export function App() {
             {count ? `${count} entries · updates on every change` : 'move a magnet to populate'}
           </span>
         </div>
-        <pre
+        {/* The scroll container is a named <section> so keyboard users can focus and scroll it
+            (WCAG 2.1.1) without hanging a tabindex off non-interactive <pre>. */}
+        <section
+          aria-label="Exported layout JSON"
+          // A scrollable region must be keyboard-reachable (WCAG 2.1.1).
+          // biome-ignore lint/a11y/noNoninteractiveTabindex: scroll container, focus is intended.
           tabIndex={0}
           style={{
-            margin: 0,
             maxHeight: 220,
             overflow: 'auto',
             padding: t.s3,
             borderRadius: t.radius,
             background: t.bg,
             border: `1px solid ${t.border}`,
-            color: count ? '#9AE6B4' : t.fgFaint,
-            font: `12px/1.6 ${mono}`,
           }}
         >
-          {count ? json : '{}'}
-        </pre>
+          <pre
+            style={{ margin: 0, color: count ? '#9AE6B4' : t.fgFaint, font: `12px/1.6 ${mono}` }}
+          >
+            {count ? json : '{}'}
+          </pre>
+        </section>
         <p style={{ margin: `${t.s3}px 0 0`, color: t.fgMuted, fontSize: 13 }}>
           Pass this back as <code style={{ font: `12px ${mono}`, color: t.fg }}>initialLayout</code>{' '}
           and the board starts exactly here. Coordinates are percentages, so a saved layout is
