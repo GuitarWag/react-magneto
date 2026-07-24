@@ -1,3 +1,4 @@
+import { round } from './round';
 import type { Layout } from './types';
 
 // Auto-arranged starting grid (center % of the board) for items without a saved position.
@@ -12,8 +13,8 @@ export function defaultGrid(ids: string[]): Layout {
     const inRow = Math.min(cols, n - r * cols);
     const c = i % cols;
     out[id] = {
-      x: ((c + 0.5) / inRow) * 88 + 6,
-      y: ((r + 0.5) / rows) * 74 + 13,
+      x: round(((c + 0.5) / inRow) * 88 + 6),
+      y: round(((r + 0.5) / rows) * 74 + 13),
     };
   });
   return out;

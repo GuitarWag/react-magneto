@@ -17,7 +17,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm run check
+      - run: npm run test:cov
       - run: npm run build
       # The example consumes the library source, so a broken public API fails here too.
       - run: npm ci

@@ -120,12 +120,19 @@ Ref handle: `getLayout()`, `bringForward(id?)`, `sendBackward(id?)`, `rotate(deg
 
 ```bash
 npm install
-npm run check      # runnable assertions (Node 22+)
+npm test           # vitest (happy-dom)
+npm run test:watch # vitest in watch mode
+npm run test:cov   # vitest with coverage thresholds
 npm run lint       # biome
 npm run typecheck  # tsc --noEmit
 npm run build      # tsup -> dist
 cd example && npm install && npm run dev   # live demo
 ```
+
+The suite covers the pure layout helpers plus the board itself driven through real pointer
+events: drag maths and clamping, selection, the menu's placement and controls, layer stepping,
+the export → import round trip, and render counts that hold the "no sibling re-renders"
+guarantee to account.
 
 ## Releasing
 

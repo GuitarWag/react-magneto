@@ -15,6 +15,7 @@ import { magnetFx } from './fx';
 import { defaultGrid } from './grid';
 import { Magnet } from './Magnet';
 import { Menu } from './Menu';
+import { round } from './round';
 import type { Layout, MagnetItem, Pos } from './types';
 import { stepZ } from './zorder';
 
@@ -160,9 +161,10 @@ export const MagnetBoard = forwardRef<MagnetBoardHandle, MagnetBoardProps>(funct
   const commit = useCallback(
     (id: string, p: { x: number; y: number }) => {
       setDragging(false);
+      const next = { x: round(p.x), y: round(p.y) };
       const cur = posRef.current.get(id);
-      if (cur && cur.x === p.x && cur.y === p.y) return; // a plain click, not a move
-      apply(id, p);
+      if (cur && cur.x === next.x && cur.y === next.y) return; // a plain click, not a move
+      apply(id, next);
     },
     [apply],
   );
@@ -178,13 +180,15 @@ export const MagnetBoard = forwardRef<MagnetBoardHandle, MagnetBoardProps>(funct
   const rotateBy = useCallback(
     (id: string, delta: number) =>
       // No explicit rotation yet means the magnet is sitting at its deterministic tilt.
-      apply(id, { r: (posRef.current.get(id)?.r ?? magnetFx(id).angle) + delta }),
+      apply(id, { r: round((posRef.current.get(id)?.r ?? magnetFx(id).angle) + delta) }),
     [apply],
   );
 
   const resizeBy = useCallback(
     (id: string, delta: number) =>
-      apply(id, { s: clamp((posRef.current.get(id)?.s ?? 1) + delta, MIN_SCALE, MAX_SCALE) }),
+      apply(id, {
+        s: round(clamp((posRef.current.get(id)?.s ?? 1) + delta, MIN_SCALE, MAX_SCALE), 3),
+      }),
     [apply],
   );
 
@@ -198,10 +202,10 @@ export const MagnetBoard = forwardRef<MagnetBoardHandle, MagnetBoardProps>(funct
       getLayout: () => Object.fromEntries(posRef.current),
       bringForward: (id) => on(pick(id), (t) => layer(t, 1)),
       sendBackward: (id) => on(pick(id), (t) => layer(t, -1)),
-      rotate: (deg, id) => on(pick(id), (t) => apply(t, { r: deg })),
+      rotate: (deg, id) => on(pick(id), (t) => apply(t, { r: round(deg) })),
       rotateBy: (delta, id) => on(pick(id), (t) => rotateBy(t, delta)),
       resize: (scale, id) =>
-        on(pick(id), (t) => apply(t, { s: clamp(scale, MIN_SCALE, MAX_SCALE) })),
+        on(pick(id), (t) => apply(t, { s: round(clamp(scale, MIN_SCALE, MAX_SCALE), 3) })),
       resizeBy: (delta, id) => on(pick(id), (t) => resizeBy(t, delta)),
     };
   }, [apply, layer, rotateBy, resizeBy]);
