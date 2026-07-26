@@ -1,6 +1,6 @@
 {
   "name": "react-magneto",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Drag-and-drop sticker board for React — a draggable fridge-magnet canvas with render-free dragging, layout export/import, and per-magnet layer, rotation and size.",
   "type": "module",
   "sideEffects": false,
