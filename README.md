@@ -7,7 +7,7 @@
 Drag-and-drop sticker board for React. Headless, no runtime dependencies, and built so
 **dragging one magnet never re-renders the others or the board**.
 
-[![The react-magneto playground: tech logo stickers scattered across a dark board](https://raw.githubusercontent.com/GuitarWag/react-magneto/main/example/public/og.png)](https://guitarwag.github.io/react-magneto/)
+[![Dragging magnets around the board, then rotating, resizing and restacking one from its menu](https://raw.githubusercontent.com/GuitarWag/react-magneto/main/example/public/demo.gif)](https://guitarwag.github.io/react-magneto/)
 
 **[▸ Try the playground](https://guitarwag.github.io/react-magneto/)** — drag the stickers,
 restack and rotate them, and watch the exported layout update live.
