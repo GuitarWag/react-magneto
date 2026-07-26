@@ -4,8 +4,10 @@
 [![CI](https://github.com/GuitarWag/react-magneto/actions/workflows/ci.yml/badge.svg)](https://github.com/GuitarWag/react-magneto/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/react-magneto?color=22c55e)](./LICENSE)
 
-Draggable fridge-magnet board for React. Headless, no runtime dependencies, and built so
+Drag-and-drop sticker board for React. Headless, no runtime dependencies, and built so
 **dragging one magnet never re-renders the others or the board**.
+
+[![The react-magneto playground: tech logo stickers scattered across a dark board](https://raw.githubusercontent.com/GuitarWag/react-magneto/main/example/public/og.png)](https://guitarwag.github.io/react-magneto/)
 
 **[▸ Try the playground](https://guitarwag.github.io/react-magneto/)** — drag the stickers,
 restack and rotate them, and watch the exported layout update live.
@@ -14,6 +16,11 @@ restack and rotate them, and watch the exported layout update live.
 - Drag, restack, rotate and resize magnets, then export the arrangement as JSON and feed it
   back in as the starting state.
 - You own the look: the board background is whatever you render behind the magnets.
+
+Handy for a sticker wall, a fridge-magnet board, a logo/tech-stack showcase, a moodboard or
+pinboard, an about page, a slide deck, or anywhere you want free-form draggable positioning
+rather than a grid. If you need a sortable grid or list instead, reach for `dnd-kit` — this
+library deliberately does not snap.
 
 ## Install
 

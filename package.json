@@ -1,7 +1,7 @@
 {
   "name": "react-magneto",
   "version": "0.3.0",
-  "description": "Draggable fridge-magnet board for React. Render-free dragging, layout export/import, per-magnet layer, rotation and size.",
+  "description": "Drag-and-drop sticker board for React \u2014 a draggable fridge-magnet canvas with render-free dragging, layout export/import, and per-magnet layer, rotation and size.",
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.cjs",
@@ -28,13 +28,23 @@
   },
   "keywords": [
     "react",
-    "drag",
+    "react-component",
+    "typescript",
+    "drag-and-drop",
     "draggable",
-    "magnet",
+    "drag",
+    "dnd",
     "sticker",
+    "stickers",
+    "magnet",
+    "fridge-magnet",
+    "moodboard",
+    "pinboard",
+    "whiteboard",
+    "canvas",
     "board",
     "layout",
-    "fridge-magnet"
+    "headless"
   ],
   "license": "MIT",
   "author": "Wagner Silva",
@@ -42,7 +52,7 @@
     "type": "git",
     "url": "git+https://github.com/GuitarWag/react-magneto.git"
   },
-  "homepage": "https://github.com/GuitarWag/react-magneto#readme",
+  "homepage": "https://guitarwag.github.io/react-magneto/",
   "bugs": {
     "url": "https://github.com/GuitarWag/react-magneto/issues"
   },
