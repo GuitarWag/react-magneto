@@ -96,8 +96,10 @@ export const MagnetBoard = forwardRef<MagnetBoardHandle, MagnetBoardProps>(funct
   const [sel, setSel] = useState<{ id: string; pos: Pos } | null>(null);
   const [dragging, setDragging] = useState(false);
 
-  // Keyed by ids so identity stays stable across unrelated parent re-renders.
-  const idsKey = items.map((it) => (typeof it === 'string' ? it : it.id)).join('|');
+  // Keyed by ids, so a new-but-equal `items` array from a parent re-render does not rebuild
+  // everything. JSON rather than a join: any single delimiter can appear inside an id, and
+  // ['a|b'] would then key the same as ['a', 'b'].
+  const idsKey = JSON.stringify(items.map((it) => (typeof it === 'string' ? it : it.id)));
   // biome-ignore lint/correctness/useExhaustiveDependencies: idsKey is the stable form of items.
   const magnets = useMemo<MagnetItem[]>(
     () => items.map((it) => (typeof it === 'string' ? { id: it, src: it } : it)),

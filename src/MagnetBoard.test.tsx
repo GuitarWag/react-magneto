@@ -560,3 +560,24 @@ describe('the render-free drag guarantee', () => {
     expect(renders.get('go')).toBe(before.get('go')); // untouched layer, no render
   });
 });
+
+describe('the items memo key', () => {
+  it('rebuilds when ids change in a way a delimiter join would collide on', async () => {
+    // '|' joined: ['a|b'] and ['a','b'] both stringify to "a|b", so a naive key cannot
+    // tell them apart and the board would keep rendering the old magnet list.
+    const ref = createRef<MagnetBoardHandle>();
+    const view = render(
+      <MagnetBoard ref={ref} className="board" items={[{ id: 'a|b' }]} editable />,
+    );
+    const board = view.container.querySelector('.board') as HTMLElement;
+    stubRect(board, BOARD);
+    await waitFor(() => expect(board.querySelectorAll('div[title]')).toHaveLength(1));
+
+    view.rerender(
+      <MagnetBoard ref={ref} className="board" items={[{ id: 'a' }, { id: 'b' }]} editable />,
+    );
+    await waitFor(() => expect(board.querySelectorAll('div[title]')).toHaveLength(2));
+    expect(board.querySelector('div[title="a"]')).toBeTruthy();
+    expect(board.querySelector('div[title="b"]')).toBeTruthy();
+  });
+});
